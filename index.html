@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Калькулятор: где ты сама себе перекрываешь деньги?</title>
+  <meta name="description" content="Мини-диагностика по 5 причинам, почему не получается зарабатывать больше." />
+  <style>
+    :root{
+      --bg:#070716;
+      --bg2:#110722;
+      --card:rgba(12, 11, 32, .82);
+      --card2:rgba(25, 15, 48, .72);
+      --gold:#e7c57b;
+      --gold2:#fff0bd;
+      --text:#f8f2e8;
+      --muted:#cfc0d8;
+      --purple:#a95cff;
+      --purple2:#ff7df2;
+      --danger:#ffb0d5;
+      --line:rgba(231,197,123,.38);
+      --white10:rgba(255,255,255,.10);
+      --white16:rgba(255,255,255,.16);
+      --shadow:0 25px 80px rgba(0,0,0,.52);
+      --radius:26px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% 12%, rgba(169,92,255,.32) 0 9%, transparent 28%),
+        radial-gradient(circle at 85% 24%, rgba(255,125,242,.22) 0 8%, transparent 25%),
+        radial-gradient(circle at 62% 82%, rgba(231,197,123,.13) 0 8%, transparent 30%),
+        linear-gradient(135deg, #050511 0%, #0d071b 46%, #090615 100%);
+      overflow-x:hidden;
+    }
+
+    body:before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,.78) 0 1px, transparent 1.3px),
+        radial-gradient(circle, rgba(231,197,123,.65) 0 1px, transparent 1.4px);
+      background-size:48px 48px, 82px 82px;
+      background-position:0 0, 20px 12px;
+      opacity:.22;
+      mask-image:linear-gradient(to bottom, transparent, black 8%, black 88%, transparent);
+    }
+
+    .orb{
+      position:fixed;
+      width:420px;
+      height:420px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(169,92,255,.3), transparent 62%);
+      filter:blur(18px);
+      pointer-events:none;
+      z-index:0;
+    }
+    .orb.one{left:-160px; top:80px}
+    .orb.two{right:-180px; bottom:10px; background:radial-gradient(circle, rgba(255,125,242,.22), transparent 62%)}
+
+    .wrap{
+      position:relative;
+      z-index:1;
+      max-width:980px;
+      margin:0 auto;
+      padding:34px 18px 70px;
+    }
+
+    .frame{
+      border:1px solid var(--line);
+      border-radius:34px;
+      padding:18px;
+      box-shadow:var(--shadow), inset 0 0 70px rgba(169,92,255,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+      backdrop-filter: blur(10px);
+    }
+
+    .hero{
+      position:relative;
+      overflow:hidden;
+      min-height:540px;
+      display:grid;
+      grid-template-columns:1.05fr .95fr;
+      gap:26px;
+      align-items:center;
+      border-radius:28px;
+      padding:46px;
+      background:
+        radial-gradient(circle at 79% 30%, rgba(169,92,255,.25), transparent 38%),
+        linear-gradient(135deg, rgba(12,10,31,.96), rgba(22,10,45,.75));
+      border:1px solid rgba(231,197,123,.24);
+    }
+
+    .hero:after{
+      content:"☽";
+      position:absolute;
+      right:36px;
+      top:24px;
+      font-size:92px;
+      color:rgba(231,197,123,.16);
+      font-family:Georgia, serif;
+      line-height:1;
+    }
+
+    .kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 16px;
+      border:1px solid rgba(231,197,123,.35);
+      border-radius:999px;
+      color:var(--gold2);
+      background:rgba(255,255,255,.05);
+      font-size:13px;
+      letter-spacing:.22em;
+      text-transform:uppercase;
+      margin-bottom:18px;
+    }
+    .kicker:before,.kicker:after{
+      content:"✦";
+      color:var(--gold);
+      letter-spacing:0;
+    }
+
+    h1{
+      margin:0 0 18px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight:500;
+      font-size: clamp(42px, 7vw, 78px);
+      line-height:.96;
+      letter-spacing:.01em;
+      color:var(--gold2);
+      text-shadow:0 0 28px rgba(231,197,123,.16);
+    }
+
+    h1 span{
+      display:block;
+      color:var(--text);
+      font-size:.54em;
+      line-height:1.05;
+      margin-top:10px;
+      font-family: Inter, system-ui, sans-serif;
+      font-weight:450;
+      letter-spacing:0;
+    }
+
+    .lead{
+      font-size: clamp(17px, 2.2vw, 22px);
+      line-height:1.48;
+      color:var(--muted);
+      margin:0 0 28px;
+      max-width:620px;
+    }
+    .lead strong{color:var(--text); font-weight:650}
+
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      align-items:center;
+    }
+
+    button,.button{
+      appearance:none;
+      border:0;
+      cursor:pointer;
+      border-radius:999px;
+      padding:15px 22px;
+      font-weight:750;
+      font-size:16px;
+      color:#160d22;
+      background:linear-gradient(135deg, var(--gold2), var(--gold));
+      box-shadow:0 12px 32px rgba(231,197,123,.22);
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      transition:transform .18s ease, filter .18s ease, background .18s ease, border-color .18s ease;
+      min-height:52px;
+    }
+    button:hover,.button:hover{transform:translateY(-1px); filter:brightness(1.04)}
+    button:active,.button:active{transform:translateY(0)}
+
+    .ghost{
+      color:var(--text);
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(231,197,123,.28);
+      box-shadow:none;
+    }
+
+    .hero-card{
+      position:relative;
+      border:1px solid rgba(231,197,123,.3);
+      background:rgba(5,5,17,.55);
+      border-radius:26px;
+      padding:26px;
+      min-height:320px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      box-shadow: inset 0 0 46px rgba(169,92,255,.12);
+    }
+
+    .hero-card h2{
+      margin:0 0 18px;
+      font-family:Georgia, serif;
+      color:var(--gold2);
+      font-size:32px;
+      font-weight:500;
+    }
+
+    .mini-list{
+      list-style:none;
+      padding:0;
+      margin:0;
+      display:grid;
+      gap:12px;
+    }
+    .mini-list li{
+      display:flex;
+      gap:10px;
+      color:var(--muted);
+      line-height:1.35;
+      font-size:16px;
+    }
+    .mini-list li:before{content:"✦"; color:var(--gold); flex:0 0 auto}
+
+    .panel{
+      margin-top:20px;
+      border:1px solid rgba(231,197,123,.28);
+      border-radius:var(--radius);
+      padding:28px;
+      background:var(--card);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .hidden{display:none!important}
+
+    .progress-block{
+      position:sticky;
+      top:0;
+      z-index:4;
+      margin:18px 0;
+      padding:12px 14px;
+      border:1px solid rgba(231,197,123,.24);
+      border-radius:18px;
+      background:rgba(6,5,20,.86);
+      backdrop-filter: blur(16px);
+    }
+    .progress-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:14px;
+      margin-bottom:10px;
+      color:var(--muted);
+      font-size:14px;
+    }
+    .bar{
+      width:100%;
+      height:10px;
+      background:rgba(255,255,255,.09);
+      border-radius:999px;
+      overflow:hidden;
+    }
+    .bar span{
+      display:block;
+      height:100%;
+      width:0;
+      background:linear-gradient(90deg, var(--purple), var(--gold));
+      border-radius:999px;
+      transition:width .25s ease;
+    }
+
+    .question{
+      display:none;
+    }
+    .question.active{display:block; animation:fade .22s ease both}
+    @keyframes fade{
+      from{opacity:0; transform:translateY(8px)}
+      to{opacity:1; transform:translateY(0)}
+    }
+
+    .question .label{
+      color:var(--gold);
+      font-size:13px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      margin-bottom:12px;
+    }
+
+    .question h2{
+      margin:0 0 22px;
+      font-size:clamp(25px, 4.3vw, 42px);
+      line-height:1.12;
+      font-family:Georgia, serif;
+      font-weight:500;
+      color:var(--text);
+    }
+
+    .options{
+      display:grid;
+      gap:12px;
+      margin:0 0 22px;
+    }
+
+    .option{
+      width:100%;
+      text-align:left;
+      color:var(--text);
+      background:rgba(255,255,255,.055);
+      border:1px solid rgba(255,255,255,.13);
+      border-radius:18px;
+      padding:17px 18px;
+      box-shadow:none;
+      font-weight:560;
+      justify-content:flex-start;
+      line-height:1.3;
+      position:relative;
+    }
+    .option:hover{
+      border-color:rgba(231,197,123,.45);
+      background:rgba(231,197,123,.08);
+    }
+    .option.selected{
+      border-color:rgba(231,197,123,.82);
+      background:linear-gradient(135deg, rgba(231,197,123,.16), rgba(169,92,255,.12));
+    }
+    .option.selected:after{
+      content:"✓";
+      position:absolute;
+      right:18px;
+      top:50%;
+      transform:translateY(-50%);
+      color:var(--gold2);
+      font-weight:900;
+    }
+
+    .nav{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      margin-top:8px;
+    }
+    .nav button{min-width:140px}
+    .nav .ghost[disabled]{
+      opacity:.35;
+      cursor:not-allowed;
+      transform:none;
+    }
+
+    .error{
+      color:var(--danger);
+      min-height:23px;
+      font-size:14px;
+      margin-top:4px;
+    }
+
+    .result-header{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:18px;
+      align-items:start;
+      margin-bottom:22px;
+    }
+    .result-header h2{
+      margin:0 0 10px;
+      font-family:Georgia, serif;
+      font-size:clamp(34px, 5vw, 58px);
+      font-weight:500;
+      color:var(--gold2);
+      line-height:1.02;
+    }
+    .result-header p{
+      margin:0;
+      color:var(--muted);
+      font-size:18px;
+      line-height:1.45;
+    }
+
+    .score-circle{
+      width:150px;
+      height:150px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(7,7,22,.96) 0 56%, transparent 58%),
+        conic-gradient(var(--gold) var(--p), rgba(255,255,255,.12) 0);
+      border:1px solid rgba(231,197,123,.28);
+      box-shadow:0 0 50px rgba(231,197,123,.12);
+      flex:none;
+    }
+    .score-circle strong{
+      font-family:Georgia, serif;
+      font-size:38px;
+      color:var(--gold2);
+      line-height:1;
+    }
+    .score-circle span{
+      display:block;
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:5px;
+      max-width:100px;
+      line-height:1.1;
+    }
+
+    .result-grid{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:16px;
+      margin:22px 0;
+    }
+
+    .result-card{
+      border:1px solid rgba(231,197,123,.24);
+      border-radius:22px;
+      background:rgba(255,255,255,.045);
+      padding:22px;
+    }
+    .result-card h3{
+      margin:0 0 12px;
+      color:var(--gold2);
+      font-size:22px;
+      font-family:Georgia, serif;
+      font-weight:500;
+    }
+    .result-card p{
+      margin:0 0 12px;
+      color:var(--muted);
+      line-height:1.5;
+      font-size:16px;
+    }
+    .result-card p:last-child{margin-bottom:0}
+
+    .scale-list{
+      display:grid;
+      gap:13px;
+    }
+    .scale-row{
+      display:grid;
+      gap:7px;
+    }
+    .scale-top{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      color:var(--text);
+      font-size:14px;
+      line-height:1.2;
+    }
+    .mini-bar{
+      height:9px;
+      border-radius:999px;
+      background:rgba(255,255,255,.10);
+      overflow:hidden;
+    }
+    .mini-bar span{
+      display:block;
+      height:100%;
+      width:0;
+      background:linear-gradient(90deg, var(--purple), var(--gold));
+      border-radius:999px;
+    }
+
+    .cta{
+      margin-top:20px;
+      border:1px solid rgba(231,197,123,.36);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(231,197,123,.13), transparent 38%),
+        rgba(15,10,34,.88);
+      border-radius:26px;
+      padding:26px;
+      text-align:center;
+    }
+    .cta h3{
+      margin:0 0 10px;
+      font-family:Georgia, serif;
+      font-weight:500;
+      color:var(--gold2);
+      font-size:clamp(28px, 4vw, 42px);
+      line-height:1.08;
+    }
+    .cta p{
+      margin:0 auto 18px;
+      max-width:720px;
+      color:var(--muted);
+      line-height:1.48;
+      font-size:17px;
+    }
+    .cta strong{color:var(--text)}
+    .price{
+      display:inline-flex;
+      margin:5px 0 18px;
+      padding:10px 16px;
+      border-radius:999px;
+      border:1px solid rgba(231,197,123,.35);
+      color:var(--gold2);
+      background:rgba(255,255,255,.05);
+      font-weight:800;
+    }
+
+    .footer{
+      text-align:center;
+      color:rgba(248,242,232,.62);
+      margin-top:20px;
+      font-size:14px;
+      line-height:1.45;
+    }
+
+    .copy-note{
+      color:var(--muted);
+      font-size:14px;
+      margin-top:10px;
+      min-height:20px;
+    }
+
+    @media (max-width: 820px){
+      .wrap{padding:18px 12px 44px}
+      .frame{padding:10px; border-radius:26px}
+      .hero{
+        min-height:auto;
+        grid-template-columns:1fr;
+        padding:30px 22px;
+        border-radius:22px;
+      }
+      .hero-card{min-height:auto}
+      .panel{padding:20px; border-radius:22px}
+      .result-header{grid-template-columns:1fr}
+      .score-circle{width:132px; height:132px}
+      .result-grid{grid-template-columns:1fr}
+      .nav{flex-direction:column-reverse}
+      .nav button{width:100%}
+      .actions{flex-direction:column}
+      .actions button,.actions .button{width:100%}
+    }
+  </style>
+</head>
+<body>
+  <div class="orb one"></div>
+  <div class="orb two"></div>
+
+  <main class="wrap">
+    <section class="frame" id="top">
+      <div class="hero">
+        <div>
+          <div class="kicker">мини-диагностика</div>
+          <h1>Где ты сама себе перекрываешь деньги?<span>Калькулятор для тех, кто старается, но доход всё равно не растёт</span></h1>
+          <p class="lead">
+            Ответь на 20 вопросов и узнай, что сейчас сильнее тормозит твой доход:
+            <strong>обесценивание себя, страх проявляться, работа через «надо», чужой путь или сценарий «деньги только через тяжёлый труд».</strong>
+          </p>
+          <div class="actions">
+            <button type="button" onclick="startQuiz()">Начать расчёт</button>
+            <button type="button" class="ghost" onclick="document.getElementById('how').scrollIntoView()">Что я получу?</button>
+          </div>
+        </div>
+
+        <aside class="hero-card" id="how">
+          <h2>В конце ты получишь:</h2>
+          <ul class="mini-list">
+            <li>главный денежный стоп, который сейчас влияет сильнее всего;</li>
+            <li>процент денежного самосаботажа;</li>
+            <li>вторую скрытую причину, которая усиливает проблему;</li>
+            <li>первый шаг, с которого стоит начать без надрыва;</li>
+            <li>рекомендацию проработки PWS в записи или личной диагностики, если важно живое общение.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="panel hidden" id="quiz">
+      <div class="progress-block">
+        <div class="progress-top">
+          <span id="stepText">Вопрос 1 из 20</span>
+          <span id="blockText">Блок 1</span>
+        </div>
+        <div class="bar"><span id="progressBar"></span></div>
+      </div>
+
+      <div id="questions"></div>
+
+      <div class="nav">
+        <button type="button" class="ghost" id="prevBtn" onclick="prevQuestion()">Назад</button>
+        <button type="button" id="nextBtn" onclick="nextQuestion()">Дальше</button>
+      </div>
+      <div class="error" id="error"></div>
+    </section>
+
+    <section class="panel hidden" id="results">
+      <div class="result-header">
+        <div>
+          <h2 id="resultTitle">Твой результат</h2>
+          <p id="resultLead"></p>
+        </div>
+        <div class="score-circle" id="scoreCircle" style="--p:0%">
+          <div>
+            <strong id="scoreNum">0%</strong>
+            <span>денежный самосаботаж</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-grid">
+        <div class="result-card">
+          <h3>Главный стоп</h3>
+          <p id="mainDescription"></p>
+          <p id="mainAction"></p>
+        </div>
+
+        <div class="result-card">
+          <h3>Вторая скрытая причина</h3>
+          <p id="secondDescription"></p>
+        </div>
+      </div>
+
+      <div class="result-card">
+        <h3>Твои 5 шкал</h3>
+        <div class="scale-list" id="scaleList"></div>
+      </div>
+
+      <div class="cta">
+        <h3>Что можно сделать с этим результатом</h3>
+        <p id="offerIntro">
+          Калькулятор показывает верхний слой: где именно сейчас может быть перекрыт денежный поток.
+          Дальше есть два пути — самостоятельная проработка PWS в записи или личная диагностика, если важно живое общение.
+        </p>
+
+        <div class="result-grid" style="text-align:left; margin:18px 0">
+          <div class="result-card">
+            <h3>Вариант 1 — самостоятельная проработка</h3>
+            <p id="recordedOfferName"></p>
+            <p id="recordedOfferText"></p>
+            <p><strong>Почему это связано с твоим результатом:</strong> любой денежный стоп из калькулятора держится не только на понимании, но и на внутреннем сопротивлении к новому действию.</p>
+            <div class="price" id="recordedOfferPrice">Проработка PWS в записи — 555 ₽</div>
+            <div class="actions">
+              <a class="button" id="recordedOfferLink" href="https://t.me/jain1109?text=%D0%BF%D0%B2%D1%81" target="_blank" rel="noopener">Хочу проработку PWS</a>
+            </div>
+          </div>
+
+          <div class="result-card">
+            <h3>Вариант 2 — с живым контактом</h3>
+            <p>
+              Если чувствуешь, что одной записи мало и хочется, чтобы я посмотрела именно твою ситуацию,
+              бери диагностику. Там мы разберём не общую причину, а твой личный денежный стоп:
+              через запрос, дату рождения и текущий сценарий.
+            </p>
+            <div class="price">Диагностика — 1999 ₽</div>
+            <div class="actions">
+              <a class="button ghost" href="https://t.me/jain1109?text=%D0%B4%D0%B8%D0%B0%D0%B3%D0%BD%D0%BE%D1%81%D1%82%D0%B8%D0%BA%D0%B0" target="_blank" rel="noopener">Хочу диагностику</a>
+            </div>
+          </div>
+        </div>
+
+        <p>
+          Нажми на нужную кнопку: в Telegram уже подставится сообщение <strong>«пвс»</strong> или <strong>«диагностика»</strong>.
+          Я подскажу, что лучше взять: запись или диагностику.
+        </p>
+
+        <div class="actions" style="justify-content:center">
+          <a class="button" href="https://t.me/jain1109" target="_blank" rel="noopener">Написать в Telegram</a>
+          <button type="button" class="ghost" onclick="copyResult()">Скопировать результат</button>
+          <button type="button" class="ghost" onclick="restartQuiz()">Пройти заново</button>
+        </div>
+        <div class="copy-note" id="copyNote"></div>
+      </div>
+    </section>
+
+    <div class="footer">
+      Евгения — астролог, таролог, интегратор ПВС<br>
+      @evgeniastro
+    </div>
+  </main>
+
+<script>
+const blocks = {
+  direction: {
+    name: "Ты не понимаешь, где именно твои деньги",
+    short: "Где твои деньги",
+    description: "Похоже, ты можешь искать деньги не там, где они легче приходят именно к тебе. Ты смотришь на чужие стратегии, пробуешь разные варианты, но не всегда видишь свою сильную зону.",
+    action: "Первый шаг: выпиши 5 дел, где тебе проще, чем другим. Не то, что выглядит престижно, а то, что у тебя реально получается без внутреннего насилия.",
+    recordingName: "Проработка PWS «Самосопротивление и саботаж к изменениям в жизни, страх перед новым»",
+    recordingText: "Подойдёт, если ты видишь, что часть тебя хочет больше денег, роста, проявленности и новых решений, а другая часть будто тормозит, откладывает, пугается и возвращает всё в привычное. Эта проработка помогает мягко пройти внутреннее сопротивление, страх нового и саботаж изменений.",
+    keyword: "PWS"
+  },
+  value: {
+    name: "Ты обесцениваешь свой опыт",
+    short: "Самоценность",
+    description: "У тебя может быть достаточно опыта, но ты как будто не разрешаешь себе считать его ценным. Поэтому другим ты помогаешь, а цену за это поднимать страшно.",
+    action: "Первый шаг: выпиши 10 вещей, которые ты уже умеешь, знаешь, проходила или решала. Не обесценивай пункт только потому, что он кажется тебе простым.",
+    recordingName: "Проработка PWS «Самосопротивление и саботаж к изменениям в жизни, страх перед новым»",
+    recordingText: "Подойдёт, если ты видишь, что часть тебя хочет больше денег, роста, проявленности и новых решений, а другая часть будто тормозит, откладывает, пугается и возвращает всё в привычное. Эта проработка помогает мягко пройти внутреннее сопротивление, страх нового и саботаж изменений.",
+    keyword: "PWS"
+  },
+  energy: {
+    name: "Ты пытаешься зарабатывать через «надо», а не через свою энергию",
+    short: "Энергия",
+    description: "Деньги могут тормозиться не из-за лени. Возможно, ты слишком долго заставляла себя идти туда, где тебя самой уже нет. Тогда доход строится на терпении, а не на живой силе.",
+    action: "Первый шаг: честно отметь, что в работе забирает больше всего сил, а что даёт ощущение живости. Деньги не обязаны приходить только через надрыв.",
+    recordingName: "Проработка PWS «Самосопротивление и саботаж к изменениям в жизни, страх перед новым»",
+    recordingText: "Подойдёт, если ты видишь, что часть тебя хочет больше денег, роста, проявленности и новых решений, а другая часть будто тормозит, откладывает, пугается и возвращает всё в привычное. Эта проработка помогает мягко пройти внутреннее сопротивление, страх нового и саботаж изменений.",
+    keyword: "PWS"
+  },
+  visibility: {
+    name: "Ты боишься проявляться и заявлять о себе",
+    short: "Проявленность",
+    description: "Деньги часто приходят через видимость: посты, сторис, предложения, цены, личную позицию. А у тебя может быть внутренний стоп: «если я выйду вперёд, меня начнут оценивать».",
+    action: "Первый шаг: выбери одно безопасное проявление на сегодня. Не запуск на миллион. Один честный пост, одна сторис, одно сообщение, одно предложение.",
+    recordingName: "Проработка PWS «Самосопротивление и саботаж к изменениям в жизни, страх перед новым»",
+    recordingText: "Подойдёт, если ты видишь, что часть тебя хочет больше денег, роста, проявленности и новых решений, а другая часть будто тормозит, откладывает, пугается и возвращает всё в привычное. Эта проработка помогает мягко пройти внутреннее сопротивление, страх нового и саботаж изменений.",
+    keyword: "PWS"
+  },
+  hardwork: {
+    name: "Внутри сидит сценарий: деньги только через тяжёлый труд",
+    short: "Денежный сценарий",
+    description: "Похоже, внутри есть установка: если деньги пришли легко, значит, это как будто нечестно. Поэтому ты можешь сама усложнять путь, чтобы доказать, что заслужила.",
+    action: "Первый шаг: выпиши 5 фраз про деньги, которые ты слышала в детстве или часто повторяешь сама. Посмотри, какая из них до сих пор управляет твоими решениями.",
+    recordingName: "Проработка PWS «Самосопротивление и саботаж к изменениям в жизни, страх перед новым»",
+    recordingText: "Подойдёт, если ты видишь, что часть тебя хочет больше денег, роста, проявленности и новых решений, а другая часть будто тормозит, откладывает, пугается и возвращает всё в привычное. Эта проработка помогает мягко пройти внутреннее сопротивление, страх нового и саботаж изменений.",
+    keyword: "PWS"
+  }
+};
+
+const questions = [
+  {block:"direction", text:"Ты часто смотришь на других и думаешь: «Вот у неё получилось, может, мне тоже так надо»?"},
+  {block:"direction", text:"Бывает, что ты не понимаешь, на чём именно тебе зарабатывать?"},
+  {block:"direction", text:"Ты пробовала разные способы заработка, но быстро теряла интерес?"},
+  {block:"direction", text:"Тебе сложно назвать 3 свои сильные стороны, которые можно монетизировать?"},
+
+  {block:"value", text:"Ты часто думаешь: «Да это и так все знают»?"},
+  {block:"value", text:"Тебе неловко брать деньги за то, что даётся тебе легко?"},
+  {block:"value", text:"Ты ждёшь момента, когда станешь «достаточно экспертной»?"},
+  {block:"value", text:"Ты сравниваешь себя с теми, у кого больше опыта, подписчиков или результатов?"},
+
+  {block:"energy", text:"Ты часто выбираешь не то, что тебе подходит, а то, что «нормально», «стабильно», «правильно»?"},
+  {block:"energy", text:"В твоей работе сейчас больше напряжения, чем интереса?"},
+  {block:"energy", text:"Ты умеешь заставить себя, но потом быстро выгораешь?"},
+  {block:"energy", text:"У тебя есть ощущение, что ты тащишь, но не живёшь?"},
+
+  {block:"visibility", text:"Тебе страшно писать посты, снимать сторис или говорить о своих услугах?"},
+  {block:"visibility", text:"Ты боишься поднять цену, потому что «а вдруг не купят»?"},
+  {block:"visibility", text:"Ты часто переделываешь, думаешь, ждёшь, но не выкладываешь?"},
+  {block:"visibility", text:"Тебе страшно, что о тебе подумают, если ты начнёшь зарабатывать больше?"},
+
+  {block:"hardwork", text:"У тебя есть ощущение, что деньги надо заслужить?"},
+  {block:"hardwork", text:"Тебе сложно принимать деньги легко?"},
+  {block:"hardwork", text:"Когда деньги приходят быстро, появляется тревога или вина?"},
+  {block:"hardwork", text:"Ты часто выбираешь сложный путь, даже если можно проще?"}
+];
+
+const answers = new Array(questions.length).fill(null);
+let current = 0;
+
+function startQuiz(){
+  document.getElementById("quiz").classList.remove("hidden");
+  document.getElementById("results").classList.add("hidden");
+  buildQuestions();
+  updateQuestion();
+  setTimeout(() => document.getElementById("quiz").scrollIntoView({behavior:"smooth"}), 80);
+}
+
+function buildQuestions(){
+  const root = document.getElementById("questions");
+  if(root.children.length) return;
+
+  questions.forEach((q, i) => {
+    const div = document.createElement("div");
+    div.className = "question";
+    div.dataset.index = i;
+
+    div.innerHTML = `
+      <div class="label">${blocks[q.block].short}</div>
+      <h2>${q.text}</h2>
+      <div class="options">
+        <button type="button" class="option" data-score="0">Нет, это не про меня</button>
+        <button type="button" class="option" data-score="1">Иногда бывает</button>
+        <button type="button" class="option" data-score="2">Да, очень похоже</button>
+      </div>
+    `;
+
+    div.querySelectorAll(".option").forEach(btn => {
+      btn.addEventListener("click", () => {
+        answers[i] = Number(btn.dataset.score);
+        div.querySelectorAll(".option").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        document.getElementById("error").textContent = "";
+        if(i < questions.length - 1){
+          setTimeout(() => nextQuestion(), 130);
+        }
+      });
+    });
+
+    root.appendChild(div);
+  });
+}
+
+function updateQuestion(){
+  document.querySelectorAll(".question").forEach((q, i) => {
+    q.classList.toggle("active", i === current);
+    q.querySelectorAll(".option").forEach(btn => {
+      btn.classList.toggle("selected", answers[i] === Number(btn.dataset.score));
+    });
+  });
+
+  document.getElementById("stepText").textContent = `Вопрос ${current + 1} из ${questions.length}`;
+  document.getElementById("blockText").textContent = blocks[questions[current].block].short;
+  document.getElementById("progressBar").style.width = `${((current + 1) / questions.length) * 100}%`;
+
+  document.getElementById("prevBtn").disabled = current === 0;
+  document.getElementById("nextBtn").textContent = current === questions.length - 1 ? "Показать результат" : "Дальше";
+}
+
+function nextQuestion(){
+  if(answers[current] === null){
+    document.getElementById("error").textContent = "Выбери один вариант ответа.";
+    return;
+  }
+
+  if(current < questions.length - 1){
+    current++;
+    updateQuestion();
+    document.getElementById("quiz").scrollIntoView({behavior:"smooth", block:"start"});
+  } else {
+    showResults();
+  }
+}
+
+function prevQuestion(){
+  if(current > 0){
+    current--;
+    document.getElementById("error").textContent = "";
+    updateQuestion();
+    document.getElementById("quiz").scrollIntoView({behavior:"smooth", block:"start"});
+  }
+}
+
+function calculateScores(){
+  const scores = {direction:0, value:0, energy:0, visibility:0, hardwork:0};
+  questions.forEach((q, i) => scores[q.block] += answers[i] || 0);
+  return scores;
+}
+
+function showResults(){
+  const scores = calculateScores();
+  const sorted = Object.entries(scores).sort((a,b) => b[1] - a[1]);
+  const mainKey = sorted[0][0];
+  const secondKey = sorted[1][0];
+  const total = Object.values(scores).reduce((a,b) => a+b, 0);
+  const percent = Math.round((total / 40) * 100);
+
+  document.getElementById("quiz").classList.add("hidden");
+  document.getElementById("results").classList.remove("hidden");
+
+  document.getElementById("resultTitle").textContent = blocks[mainKey].name;
+  document.getElementById("resultLead").textContent = `Сейчас этот сценарий сильнее всего влияет на твой доход. Общий уровень денежного самосаботажа по ответам — ${percent}%.`;
+  document.getElementById("scoreNum").textContent = `${percent}%`;
+  document.getElementById("scoreCircle").style.setProperty("--p", `${percent}%`);
+
+  document.getElementById("mainDescription").textContent = blocks[mainKey].description;
+  document.getElementById("mainAction").textContent = blocks[mainKey].action;
+  document.getElementById("secondDescription").textContent = `${blocks[secondKey].name}. ${blocks[secondKey].description}`;
+
+  document.getElementById("recordedOfferName").textContent = blocks[mainKey].recordingName;
+  document.getElementById("recordedOfferText").textContent = blocks[mainKey].recordingText;
+  document.getElementById("telegramKeyword").textContent = blocks[mainKey].keyword;
+  document.getElementById("recordedOfferLink").href = `https://t.me/jain1109?text=${encodeURIComponent("пвс")}`;
+
+  const scaleList = document.getElementById("scaleList");
+  scaleList.innerHTML = "";
+  Object.entries(scores).forEach(([key, score]) => {
+    const pct = Math.round((score / 8) * 100);
+    const row = document.createElement("div");
+    row.className = "scale-row";
+    row.innerHTML = `
+      <div class="scale-top">
+        <span>${blocks[key].short}</span>
+        <strong>${pct}%</strong>
+      </div>
+      <div class="mini-bar"><span style="width:${pct}%"></span></div>
+    `;
+    scaleList.appendChild(row);
+  });
+
+  setTimeout(() => document.getElementById("results").scrollIntoView({behavior:"smooth"}), 80);
+}
+
+function restartQuiz(){
+  answers.fill(null);
+  current = 0;
+  document.getElementById("results").classList.add("hidden");
+  document.getElementById("quiz").classList.remove("hidden");
+  updateQuestion();
+  document.getElementById("quiz").scrollIntoView({behavior:"smooth"});
+}
+
+function copyResult(){
+  const title = document.getElementById("resultTitle").textContent;
+  const lead = document.getElementById("resultLead").textContent;
+  const text = `Мой результат в калькуляторе «Где ты сама себе перекрываешь деньги?»\n\n${title}\n${lead}\n\nХочу понять, что мне лучше подойдёт: проработка PWS «Самосопротивление и саботаж к изменениям в жизни, страх перед новым» или диагностика.`;
+  navigator.clipboard.writeText(text).then(() => {
+    document.getElementById("copyNote").textContent = "Результат скопирован. Теперь его можно отправить Евгении.";
+  }).catch(() => {
+    document.getElementById("copyNote").textContent = "Не удалось скопировать автоматически. Выдели текст результата вручную.";
+  });
+}
+</script>
+</body>
+</html>
